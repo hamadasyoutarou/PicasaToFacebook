@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+		<title>Picasa Tool</title>
+
+		<!-- jquery -->
+		<script
+			src="https://code.jquery.com/jquery-3.1.1.js"
+			integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="
+			crossorigin="anonymous"></script>		
+		<!-- Bootstrap -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+
+		<script src="https://apis.google.com/js/api.js"></script>
+	</head>
+	<body>
+		<div id="loader" style="display: none;">
+			<div class="loader_wrapper">
+				<div class="loaderImg"></div>
+				<div class="loader_progress">Loading...</div>
+				<div class="loader_progressBarWrapper">
+					<div class="loader_progressBar"></div>
+				</div>
+			</div>
+			<div class="loder_overlay"></div>
+		</div>
+
+		<nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
+			<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<a class="navbar-brand" href="#">Picasa Tool</a>
+
+			<div class="collapse navbar-collapse" id="navbarsExampleDefault">
+				<ul class="navbar-nav mr-auto">
+					<li class="nav-item active">
+						<a class="nav-link" href="#">Home</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#" onclick="doUpdateItemLevelSec();">権限一括変更</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#" onclick="selectedDownloadCSV();">CSV出力</a>
+					</li>
+					<li class="nav-item dropdown">
+						<a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
+						<div class="dropdown-menu" aria-labelledby="dropdown01">
+							<a class="dropdown-item" href="#">Action</a>
+							<a class="dropdown-item" href="#">Another action</a>
+							<a class="dropdown-item" href="#">Something else here</a>
+						</div>
+					</li>
+				</ul>
+				<form class="form-inline my-2 my-lg-0">
+					<input class="form-control mr-sm-2" type="text" placeholder="Search">
+					<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+				</form>
+			</div>
+		</nav>
+		<div class="container" id="albam" style="margin-top: 100px">
+			<div class="row" >
+			</div>
+		</div>
+		<script type="text/javascript">
+			var userID = 'hamadasyoutarou';
+			var URL_ALBUM = 
+				"https://picasaweb.google.com/data/feed/api/user/" + userID
+				+"?kind=album&alt=json";
+			// URL_ALBUM += '&access=all';
+			var albamData;
+			var albamFeedEntry;
+			$.ajax({
+				type: "GET",
+				url: URL_ALBUM,
+				success: function(msg){
+					console.log(msg);
+					albamData = msg;
+					albamFeedEntry = albamData.feed.entry;
+					albamFeedEntry.forEach(function(val){
+						$.ajax({
+							type: "GET",
+							url: val.id.$t,
+							success: function(data){
+								console.log(data.entry.title.$t);
+								var col = $('<div class="col-md-3" style="display:none"/>');
+								var img = $(' <div class="thumbnail"> <img src="' + data.entry.media$group.media$thumbnail[0].url + '"></div>');
+								col.append(img);
+								img.click(function(){
+									var url = 'https://picasaweb.google.com/data/feed/api/user/' + userID + '/albumid/' + data.entry.gphoto$id.$t + '?alt=json'
+									console.log(url);
+									$.ajax({
+											type: "GET",
+											url: url,
+											success: function(data){
+												$('#albam .row').html('');
+												data.feed.entry.forEach(function(img){
+													var imgURL = img.media$group.media$content[0].url;
+													console.log(imgURL);
+													var col = $('<div class="col-md-3" style="display:none"/>');
+													var img = $(' <div href="#" class="thumbnail"> <img class="img-responsive" src="' + imgURL + '"></div>');
+													col.append(img);
+													$('#albam .row').append(col);
+													col.fadeIn('slow');
+												});
+											}
+										});
+								});
+								$('#albam .row').append(col);
+								col.fadeIn('slow');
+							}
+						});
+					});
+				}
+			});
+
+			function loadAlbam(){
+				$('#albam .row').html('');
+				$.ajax({
+					type: "GET",
+					url: URL_ALBUM,
+					success: function(msg){
+						console.log(msg);
+						albamData = msg;
+						albamFeedEntry = albamData.feed.entry;
+						albamFeedEntry.forEach(function(val){
+							$.ajax({
+								type: "GET",
+								url: val.id.$t,
+								success: function(data){
+									console.log(data.entry.title.$t);
+									var col = $('<div class="col-md-3" style="display:none"/>');
+									var img = $(' <div class="thumbnail"> <img src="' + data.entry.media$group.media$thumbnail[0].url + '"></div>');
+									col.append(img);
+									$('#albam .row').append(col);
+									col.fadeIn('slow');
+									col.click(function(event) {
+										loadAlbam(data.entry.gphoto$id.$t);
+									});
+								}
+							});
+						});
+					}
+				});
+			}
+			function loadAlbamPhoto(id){
+				var url = 'https://picasaweb.google.com/data/feed/api/user/' + userID + '/albumid/' +id + '?alt=json'
+				console.log(url);
+				$.ajax({
+					type: "GET",
+					url: url,
+					success: function(data){
+						$('#albam .row').html('');
+						data.feed.entry.forEach(function(img){
+							var imgURL = img.media$group.media$content[0].url;
+							console.log(imgURL);
+							var col = $('<div class="col-md-3" style="display:none"/>');
+							var img = $(' <div href="#" class="thumbnail"> <img class="img-responsive" src="' + imgURL + '"></div>');
+							col.append(img);
+							$('#albam .row').append(col);
+							col.fadeIn('slow');
+						});
+					}
+				});
+
+			}
+		</script>
+	</body>
+</html>
