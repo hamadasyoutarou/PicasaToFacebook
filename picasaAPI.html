@@ -19,6 +19,14 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
 
 		<script src="https://apis.google.com/js/api.js"></script>
+		<style>
+			.albamTitle{
+				position: absolute;
+				background: rgba(255,255,255,0.5);
+				width: 160px;
+				text-align: center;
+			}
+		</style>
 	</head>
 	<body>
 		<div id="loader" style="display: none;">
@@ -41,13 +49,7 @@
 			<div class="collapse navbar-collapse" id="navbarsExampleDefault">
 				<ul class="navbar-nav mr-auto">
 					<li class="nav-item active">
-						<a class="nav-link" href="#">Home</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="#" onclick="doUpdateItemLevelSec();">権限一括変更</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="#" onclick="selectedDownloadCSV();">CSV出力</a>
+						<a class="nav-link" href="#" onclick="loadAlbam();">Home</a>
 					</li>
 					<li class="nav-item dropdown">
 						<a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
@@ -76,50 +78,10 @@
 			// URL_ALBUM += '&access=all';
 			var albamData;
 			var albamFeedEntry;
-			$.ajax({
-				type: "GET",
-				url: URL_ALBUM,
-				success: function(msg){
-					console.log(msg);
-					albamData = msg;
-					albamFeedEntry = albamData.feed.entry;
-					albamFeedEntry.forEach(function(val){
-						$.ajax({
-							type: "GET",
-							url: val.id.$t,
-							success: function(data){
-								console.log(data.entry.title.$t);
-								var col = $('<div class="col-md-3" style="display:none"/>');
-								var img = $(' <div class="thumbnail"> <img src="' + data.entry.media$group.media$thumbnail[0].url + '"></div>');
-								col.append(img);
-								img.click(function(){
-									var url = 'https://picasaweb.google.com/data/feed/api/user/' + userID + '/albumid/' + data.entry.gphoto$id.$t + '?alt=json'
-									console.log(url);
-									$.ajax({
-											type: "GET",
-											url: url,
-											success: function(data){
-												$('#albam .row').html('');
-												data.feed.entry.forEach(function(img){
-													var imgURL = img.media$group.media$content[0].url;
-													console.log(imgURL);
-													var col = $('<div class="col-md-3" style="display:none"/>');
-													var img = $(' <div href="#" class="thumbnail"> <img class="img-responsive" src="' + imgURL + '"></div>');
-													col.append(img);
-													$('#albam .row').append(col);
-													col.fadeIn('slow');
-												});
-											}
-										});
-								});
-								$('#albam .row').append(col);
-								col.fadeIn('slow');
-							}
-						});
-					});
-				}
+			$(function(){
+				loadAlbam();
+				gapi.load('client', start);
 			});
-
 			function loadAlbam(){
 				$('#albam .row').html('');
 				$.ajax({
@@ -135,13 +97,13 @@
 								url: val.id.$t,
 								success: function(data){
 									console.log(data.entry.title.$t);
-									var col = $('<div class="col-md-3" style="display:none"/>');
-									var img = $(' <div class="thumbnail"> <img src="' + data.entry.media$group.media$thumbnail[0].url + '"></div>');
+									var col = $('<div class="col-md-3" style="display:none"></div>');
+									var img = $('<div class="thumbnail"><span class="albamTitle">' + data.entry.title.$t + '</span><img src="' + data.entry.media$group.media$thumbnail[0].url + '"></div>');
 									col.append(img);
 									$('#albam .row').append(col);
 									col.fadeIn('slow');
 									col.click(function(event) {
-										loadAlbam(data.entry.gphoto$id.$t);
+										loadAlbamPhoto(data.entry.gphoto$id.$t);
 									});
 								}
 							});
@@ -161,14 +123,28 @@
 							var imgURL = img.media$group.media$content[0].url;
 							console.log(imgURL);
 							var col = $('<div class="col-md-3" style="display:none"/>');
-							var img = $(' <div href="#" class="thumbnail"> <img class="img-responsive" src="' + imgURL + '"></div>');
+							var img = $(' <div href="#" class="thumbnail"> <img class="img-thumbnail img-responsive" src="' + imgURL + '"></div>');
 							col.append(img);
 							$('#albam .row').append(col);
 							col.fadeIn('slow');
 						});
 					}
 				});
-
+			}
+			function start() {
+ 				// 2. Initialize the JavaScript client library.
+				gapi.client.init({
+					'apiKey': 'AIzaSyBMd0Bw0Mn1ft2EuySoHL6pCGV6-DfKc4c',
+					// clientId and scope are optional if auth is not required.
+					'clientId': '253501257401-qi6uvheeciarjs4h9dsd3nepcp47a7e3.apps.googleusercontent.com',
+					'scope': 'https://picasaweb.google.com/data/',
+				}).then(function() {
+					// 3. Initialize and make the API request.
+				}).then(function(response) {
+					console.log(response.result);
+				}, function(reason) {
+					console.log('Error: ' + reason.result.error.message);
+				});
 			}
 		</script>
 	</body>
