@@ -51,14 +51,6 @@
 					<li class="nav-item active">
 						<a class="nav-link" href="#" onclick="loadAlbam();">Home</a>
 					</li>
-					<li class="nav-item dropdown">
-						<a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
-						<div class="dropdown-menu" aria-labelledby="dropdown01">
-							<a class="dropdown-item" href="#">Action</a>
-							<a class="dropdown-item" href="#">Another action</a>
-							<a class="dropdown-item" href="#">Something else here</a>
-						</div>
-					</li>
 				</ul>
 				<form class="form-inline my-2 my-lg-0">
 					<input class="form-control mr-sm-2" type="text" placeholder="Search">
@@ -75,11 +67,10 @@
 			var URL_ALBUM = 
 				"https://picasaweb.google.com/data/feed/api/user/" + userID
 				+"?kind=album&alt=json";
-			// URL_ALBUM += '&access=all';
+			URL_ALBUM += '&access=all';
 			var albamData;
 			var albamFeedEntry;
 			$(function(){
-				loadAlbam();
 				gapi.load('client', start);
 			});
 			function loadAlbam(){
@@ -134,18 +125,27 @@
 			function start() {
  				// 2. Initialize the JavaScript client library.
 				gapi.client.init({
-					'apiKey': 'AIzaSyBMd0Bw0Mn1ft2EuySoHL6pCGV6-DfKc4c',
+					'apiKey': apikey,
 					// clientId and scope are optional if auth is not required.
-					'clientId': '253501257401-qi6uvheeciarjs4h9dsd3nepcp47a7e3.apps.googleusercontent.com',
+					'clientId': clientID,
 					'scope': 'https://picasaweb.google.com/data/',
 				}).then(function() {
-					// 3. Initialize and make the API request.
+					gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+					updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());	
+					gapi.auth2.getAuthInstance().singIn();
 				}).then(function(response) {
-					console.log(response.result);
+					console.log(response);
 				}, function(reason) {
-					console.log('Error: ' + reason.result.error.message);
+					console.log( reason);
 				});
 			}
+			function updateSigninStatus(isSignedIn){
+				if(isSignedIn){
+					loadAlbam();
+				}
+			}
+			var apikey = 'AIzaSyBMd0Bw0Mn1ft2EuySoHL6pCGV6-DfKc4c'
+			var clientID = '253501257401-qi6uvheeciarjs4h9dsd3nepcp47a7e3.apps.googleusercontent.com'
 		</script>
 	</body>
 </html>
