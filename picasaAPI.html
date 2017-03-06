@@ -64,20 +64,16 @@
 		</div>
 		<script type="text/javascript">
 			var userID = 'hamadasyoutarou';
-			var URL_ALBUM = 
-				"https://picasaweb.google.com/data/feed/api/user/" + userID
-				+"?kind=album&alt=json";
-			URL_ALBUM += '&access=all';
+			var access_token;
+			var urlOption;
+			var URL_ALBUM = "https://picasaweb.google.com/data/"
 			var albamData;
 			var albamFeedEntry;
-			$(function(){
-				gapi.load('client', start);
-			});
-			function loadAlbam(){
+		function loadAlbam(){
 				$('#albam .row').html('');
 				$.ajax({
 					type: "GET",
-					url: URL_ALBUM,
+					url: URL_ALBUM + "feed/api/user/" + userID + urlOption + "&kind=album",
 					success: function(msg){
 						console.log(msg);
 						albamData = msg;
@@ -85,7 +81,7 @@
 						albamFeedEntry.forEach(function(val){
 							$.ajax({
 								type: "GET",
-								url: val.id.$t,
+								url: URL_ALBUM + "entry/api/user/" + userID + "/albumid/" + val.gphoto$id.$t + urlOption,
 								success: function(data){
 									console.log(data.entry.title.$t);
 									var col = $('<div class="col-md-3" style="display:none"></div>');
@@ -103,7 +99,7 @@
 				});
 			}
 			function loadAlbamPhoto(id){
-				var url = 'https://picasaweb.google.com/data/feed/api/user/' + userID + '/albumid/' +id + '?alt=json'
+				var url = URL_ALBUM + 'feed/api/user/' + userID + '/albumid/' + id + urlOption
 				console.log(url);
 				$.ajax({
 					type: "GET",
@@ -122,6 +118,9 @@
 					}
 				});
 			}
+			$(function(){
+				gapi.load('client', start);
+			});
 			function start() {
  				// 2. Initialize the JavaScript client library.
 				gapi.client.init({
@@ -132,7 +131,7 @@
 				}).then(function() {
 					gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
 					updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());	
-					gapi.auth2.getAuthInstance().singIn();
+					gapi.auth2.getAuthInstance().signIn();
 				}).then(function(response) {
 					console.log(response);
 				}, function(reason) {
@@ -141,6 +140,11 @@
 			}
 			function updateSigninStatus(isSignedIn){
 				if(isSignedIn){
+					var user = gapi.auth2.getAuthInstance().currentUser.get();
+					var authResponse = user.getAuthResponse();
+
+					access_token = authResponse.access_token;
+					urlOption = "?alt=json&access=all&access_token=" + access_token;
 					loadAlbam();
 				}
 			}
