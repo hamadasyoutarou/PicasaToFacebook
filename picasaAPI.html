@@ -63,51 +63,49 @@
 			</div>
 		</div>
 		<script type="text/javascript">
-			var userID = 'hamadasyoutarou';
+			var userID;
 			var access_token;
 			var urlOption;
 			var URL_ALBUM = "https://picasaweb.google.com/data/"
 			var albamData;
 			var albamFeedEntry;
-		function loadAlbam(){
+			function loadAlbam(){
 				$('#albam .row').html('');
 				$.ajax({
 					type: "GET",
-					url: URL_ALBUM + "feed/api/user/" + userID + urlOption + "&kind=album",
+					url: URL_ALBUM + "feed/base/user/" + userID + "?" + urlOption + "&kind=album&access=all",
 					success: function(msg){
 						console.log(msg);
 						albamData = msg;
 						albamFeedEntry = albamData.feed.entry;
 						albamFeedEntry.forEach(function(val){
-							$.ajax({
-								type: "GET",
-								url: URL_ALBUM + "entry/api/user/" + userID + "/albumid/" + val.gphoto$id.$t + urlOption,
-								success: function(data){
-									console.log(data.entry.title.$t);
-									var col = $('<div class="col-md-3" style="display:none"></div>');
-									var img = $('<div class="thumbnail"><span class="albamTitle">' + data.entry.title.$t + '</span><img src="' + data.entry.media$group.media$thumbnail[0].url + '"></div>');
-									col.append(img);
-									$('#albam .row').append(col);
-									col.fadeIn('slow');
-									col.click(function(event) {
-										loadAlbamPhoto(data.entry.gphoto$id.$t);
-									});
-								}
+							console.log(val);
+							var col = $('<div class="col-md-3" style="display:none"></div>');
+							var img = $('<div class="thumbnail"><a href-"#" class="albamTitle">' + val.title.$t + '</a><img src="' + val.media$group.media$thumbnail[0].url + '"></div>');
+							col.append(img);
+							$('#albam .row').append(col);
+							col.fadeIn('slow');
+							col.click(function(event) {
+								loadAlbamPhoto(val.link[0].href);
 							});
 						});
 					}
 				});
 			}
+			/**
+			 * 
+			 */
 			function loadAlbamPhoto(id){
-				var url = URL_ALBUM + 'feed/api/user/' + userID + '/albumid/' + id + urlOption
+				//var url = URL_ALBUM + 'feed/api/user/' + userID + '/albumid/' + id + urlOption
+				var url = id + "&" + urlOption;
 				console.log(url);
+				$('#albam .row').html('');
 				$.ajax({
 					type: "GET",
 					url: url,
 					success: function(data){
-						$('#albam .row').html('');
 						data.feed.entry.forEach(function(img){
-							var imgURL = img.media$group.media$content[0].url;
+							var imgURL = img.media$group.media$thumbnail[2].url;
 							console.log(imgURL);
 							var col = $('<div class="col-md-3" style="display:none"/>');
 							var img = $(' <div href="#" class="thumbnail"> <img class="img-thumbnail img-responsive" src="' + imgURL + '"></div>');
@@ -118,6 +116,8 @@
 					}
 				});
 			}
+
+
 			$(function(){
 				gapi.load('client', start);
 			});
@@ -142,9 +142,9 @@
 				if(isSignedIn){
 					var user = gapi.auth2.getAuthInstance().currentUser.get();
 					var authResponse = user.getAuthResponse();
-
+					userID = user.getId();
 					access_token = authResponse.access_token;
-					urlOption = "?alt=json&access=all&access_token=" + access_token;
+					urlOption = "alt=json&access_token=" + access_token;
 					loadAlbam();
 				}
 			}
